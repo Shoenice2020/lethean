@@ -66,8 +66,12 @@ namespace cryptonote
   core::core(i_cryptonote_protocol* pprotocol):
               m_mempool(m_blockchain_storage),
               m_blockchain_storage(m_mempool),
+<<<<<<< HEAD
               m_miner(this),
               m_miner_address(boost::value_initialized<account_public_address>()),
+=======
+              m_miner(this, &m_blockchain_storage),
+>>>>>>> 81c2ad6... RandomX integration
               m_starter_message_showed(false),
               m_target_blockchain_height(0),
               m_checkpoints_path(""),
@@ -416,7 +420,13 @@ namespace cryptonote
     m_blockchain_storage.set_show_time_stats(show_time_stats);
     CHECK_AND_ASSERT_MES(r, false, "Failed to initialize blockchain storage");
 
+<<<<<<< HEAD
     block_sync_size = command_line::get_arg(vm, command_line::arg_block_sync_size);
+=======
+    block_sync_size = command_line::get_arg(vm, arg_block_sync_size);
+    if (block_sync_size > BLOCKS_SYNCHRONIZING_MAX_COUNT)
+      MERROR("Error --block-sync-size cannot be greater than " << BLOCKS_SYNCHRONIZING_MAX_COUNT);
+>>>>>>> 81c2ad6... RandomX integration
 
     MGINFO("Loading checkpoints");
 

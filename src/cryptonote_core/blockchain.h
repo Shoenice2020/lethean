@@ -194,6 +194,18 @@ namespace cryptonote
     crypto::hash get_block_id_by_height(uint64_t height) const;
 
     /**
+     * @brief gets a block's hash given a height
+     *
+     * Used only by prepare_handle_incoming_blocks. Will look in the list of incoming blocks
+     * if the height is contained there.
+     *
+     * @param height the height of the block
+     *
+     * @return the hash of the block at the requested height, or a zeroed hash if there is no such block
+     */
+    crypto::hash get_pending_block_id_by_height(uint64_t height) const;
+
+    /**
      * @brief gets the block with a given hash
      *
      * @param h the hash to look for
@@ -975,6 +987,30 @@ namespace cryptonote
 
     std::atomic<bool> m_cancel;
 
+<<<<<<< HEAD
+=======
+    // block template cache
+    block m_btc;
+    account_public_address m_btc_address;
+    blobdata m_btc_nonce;
+    difficulty_type m_btc_difficulty;
+    uint64_t m_btc_height;
+    uint64_t m_btc_pool_cookie;
+    uint64_t m_btc_expected_reward;
+    bool m_btc_valid;
+
+
+    bool m_batch_success;
+
+    std::shared_ptr<tools::Notify> m_block_notify;
+    std::shared_ptr<tools::Notify> m_reorg_notify;
+
+    // for prepare_handle_incoming_blocks
+    uint64_t m_prepare_height;
+    uint64_t m_prepare_nblocks;
+    std::vector<block> *m_prepare_blocks;
+
+>>>>>>> 81c2ad6... RandomX integration
     /**
      * @brief collects the keys for all outputs being "spent" as an input
      *

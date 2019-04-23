@@ -824,6 +824,7 @@ namespace cryptonote
     return p;
   }
   //---------------------------------------------------------------
+<<<<<<< HEAD
   bool get_block_longhash(const block& b, crypto::hash& res, uint64_t height)
   {
     blobdata bd = get_block_hashing_blob(b);
@@ -913,6 +914,8 @@ namespace cryptonote
 	  CHECK_AND_ASSERT_MES(false, false, "unknown block major version: " << bl.major_version << "." << bl.minor_version);
   }
   //---------------------------------------------------------------
+=======
+>>>>>>> 81c2ad6... RandomX integration
   std::vector<uint64_t> relative_output_offsets_to_absolute(const std::vector<uint64_t>& off)
   {
     std::vector<uint64_t> res = off;
@@ -933,6 +936,7 @@ namespace cryptonote
     return res;
   }
   //---------------------------------------------------------------
+<<<<<<< HEAD
   crypto::hash get_block_longhash(const block& b, uint64_t height)
   {
     crypto::hash p = null_hash;
@@ -941,6 +945,9 @@ namespace cryptonote
   }
   //---------------------------------------------------------------
   bool parse_and_validate_block_from_blob(const blobdata& b_blob, block& b)
+=======
+  bool parse_and_validate_block_from_blob(const blobdata& b_blob, block& b, crypto::hash *block_hash)
+>>>>>>> 81c2ad6... RandomX integration
   {
     std::stringstream ss;
     ss << b_blob;

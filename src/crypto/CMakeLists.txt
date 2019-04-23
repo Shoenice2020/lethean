@@ -45,8 +45,21 @@ set(crypto_sources
   random.c
   skein.c
   slow-hash.c
+<<<<<<< HEAD
   tree-hash.c)
 
+=======
+  rx-slow-hash.c
+  CryptonightR_JIT.c
+  tree-hash.c)
+
+if(ARCH_ID STREQUAL "i386" OR ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64")
+list(APPEND crypto_sources CryptonightR_template.S)
+endif()
+
+include_directories(${RANDOMX_INCLUDE})
+
+>>>>>>> 81c2ad6... RandomX integration
 set(crypto_headers)
 
 set(crypto_private_headers
@@ -76,6 +89,11 @@ monero_add_library(cncrypto
   ${crypto_private_headers})
 target_link_libraries(cncrypto
   PUBLIC
+<<<<<<< HEAD
+=======
+    epee
+    randomx
+>>>>>>> 81c2ad6... RandomX integration
     ${Boost_SYSTEM_LIBRARY}
   PRIVATE
     ${EXTRA_LIBRARIES})

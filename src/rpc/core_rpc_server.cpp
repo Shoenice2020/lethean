@@ -745,8 +745,33 @@ namespace cryptonote
     if ( lMiner.is_mining() ) {
       res.speed = lMiner.get_speed();
       res.threads_count = lMiner.get_threads_count();
+<<<<<<< HEAD
       const account_public_address& lMiningAdr = lMiner.get_mining_address();
       res.address = get_account_address_as_str(m_testnet, lMiningAdr);
+=======
+      res.block_reward = lMiner.get_block_reward();
+    }
+    const account_public_address& lMiningAdr = lMiner.get_mining_address();
+    if (lMiner.is_mining() || lMiner.get_is_background_mining_enabled())
+      res.address = get_account_address_as_str(nettype(), false, lMiningAdr);
+    const uint8_t major_version = m_core.get_blockchain_storage().get_current_hard_fork_version();
+    const unsigned variant = major_version >= 7 ? major_version - 6 : 0;
+    switch (variant)
+    {
+      case 0: res.pow_algorithm = "Cryptonight"; break;
+      case 1: res.pow_algorithm = "CNv1 (Cryptonight variant 1)"; break;
+      case 2: case 3: res.pow_algorithm = "CNv2 (Cryptonight variant 2)"; break;
+      case 4: case 5: res.pow_algorithm = "CNv4 (Cryptonight variant 4)"; break;
+      case 6: res.pow_algorithm = "RandomX"; break;
+      default: res.pow_algorithm = "I'm not sure actually"; break;
+    }
+    if (res.is_background_mining_enabled)
+    {
+      res.bg_idle_threshold = lMiner.get_idle_threshold();
+      res.bg_min_idle_seconds = lMiner.get_min_idle_seconds();
+      res.bg_ignore_battery = lMiner.get_ignore_battery();
+      res.bg_target = lMiner.get_mining_target();
+>>>>>>> 81c2ad6... RandomX integration
     }
 
     res.status = CORE_RPC_STATUS_OK;
@@ -944,6 +969,22 @@ namespace cryptonote
       LOG_ERROR("Failed to create block template");
       return false;
     }
+<<<<<<< HEAD
+=======
+    if (b.major_version >= RX_BLOCK_VERSION)
+    {
+      uint64_t seed_height, next_height;
+      crypto::hash seed_hash;
+      crypto::rx_seedheights(res.height, &seed_height, &next_height);
+      seed_hash = m_core.get_block_id_by_height(seed_height);
+      res.seed_hash = string_tools::pod_to_hex(seed_hash);
+      if (next_height != seed_height) {
+        seed_hash = m_core.get_block_id_by_height(next_height);
+        res.next_seed_hash = string_tools::pod_to_hex(seed_hash);
+      }
+    }
+    store_difficulty(wdiff, res.difficulty, res.wide_difficulty, res.difficulty_top64);
+>>>>>>> 81c2ad6... RandomX integration
     blobdata block_blob = t_serializable_object_to_blob(b);
     crypto::public_key tx_pub_key = cryptonote::get_tx_pub_key_from_extra(b.miner_tx);
     if(tx_pub_key == null_pkey)
@@ -1023,6 +1064,74 @@ namespace cryptonote
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
+<<<<<<< HEAD
+=======
+  bool core_rpc_server::on_generateblocks(const COMMAND_RPC_GENERATEBLOCKS::request& req, COMMAND_RPC_GENERATEBLOCKS::response& res, epee::json_rpc::error& error_resp, const connection_context *ctx)
+  {
+    PERF_TIMER(on_generateblocks);
+
+    CHECK_CORE_READY();
+    
+    res.status = CORE_RPC_STATUS_OK;
+
+    if(m_core.get_nettype() != FAKECHAIN)
+    {
+      error_resp.code = CORE_RPC_ERROR_CODE_REGTEST_REQUIRED;
+      error_resp.message = "Regtest required when generating blocks";      
+      return false;
+    }
+
+    COMMAND_RPC_GETBLOCKTEMPLATE::request template_req;
+    COMMAND_RPC_GETBLOCKTEMPLATE::response template_res;
+    COMMAND_RPC_SUBMITBLOCK::request submit_req;
+    COMMAND_RPC_SUBMITBLOCK::response submit_res;
+
+    template_req.reserve_size = 1;
+    template_req.wallet_address = req.wallet_address;
+    template_req.prev_block = req.prev_block;
+    submit_req.push_back(std::string{});
+    res.height = m_core.get_blockchain_storage().get_current_blockchain_height();
+
+    for(size_t i = 0; i < req.amount_of_blocks; i++)
+    {
+      bool r = on_getblocktemplate(template_req, template_res, error_resp, ctx);
+      res.status = template_res.status;
+      template_req.prev_block.clear();
+      
+      if (!r) return false;
+
+      blobdata blockblob;
+      if(!string_tools::parse_hexstr_to_binbuff(template_res.blocktemplate_blob, blockblob))
+      {
+        error_resp.code = CORE_RPC_ERROR_CODE_WRONG_BLOCKBLOB;
+        error_resp.message = "Wrong block blob";
+        return false;
+      }
+      block b;
+      if(!parse_and_validate_block_from_blob(blockblob, b))
+      {
+        error_resp.code = CORE_RPC_ERROR_CODE_WRONG_BLOCKBLOB;
+        error_resp.message = "Wrong block blob";
+        return false;
+      }
+      b.nonce = req.starting_nonce;
+      miner::find_nonce_for_given_block(&(m_core.get_blockchain_storage()), b, template_res.difficulty, template_res.height);
+
+      submit_req.front() = string_tools::buff_to_hex_nodelimer(block_to_blob(b));
+      r = on_submitblock(submit_req, submit_res, error_resp, ctx);
+      res.status = submit_res.status;
+
+      if (!r) return false;
+
+      res.blocks.push_back(epee::string_tools::pod_to_hex(get_block_hash(b)));
+      template_req.prev_block = res.blocks.back();
+      res.height = template_res.height;
+    }
+
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+>>>>>>> 81c2ad6... RandomX integration
   uint64_t core_rpc_server::get_block_reward(const block& blk)
   {
     uint64_t reward = 0;
@@ -1048,6 +1157,12 @@ namespace cryptonote
     response.reward = get_block_reward(blk);
     response.block_size = m_core.get_blockchain_storage().get_db().get_block_size(height);
     response.num_txes = blk.tx_hashes.size();
+<<<<<<< HEAD
+=======
+    response.pow_hash = fill_pow_hash ? string_tools::pod_to_hex(get_block_longhash(&(m_core.get_blockchain_storage()), blk, height, 0)) : "";
+    response.long_term_weight = m_core.get_blockchain_storage().get_db().get_block_long_term_weight(height);
+    response.miner_tx_hash = string_tools::pod_to_hex(cryptonote::get_transaction_hash(blk.miner_tx));
+>>>>>>> 81c2ad6... RandomX integration
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
